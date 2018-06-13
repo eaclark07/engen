@@ -118,7 +118,8 @@ Corpus read_corpus(char* filename, dynet::Dict* dptr,
   while (getline(in, line, '\n')){
     tlc ++;
     // cerr << tlc << endl;
-    if (line[0] != '='){
+    if (!((line[0] == '=') and (line[1] == '='))){
+      // normal sentence
       sent = read_sentence(line, dptr, b_update);
       if (sent.size() > 0){
 	doc.sents.push_back(sent);
@@ -127,11 +128,17 @@ Corpus read_corpus(char* filename, dynet::Dict* dptr,
 	cerr << "Empty sentence: " << line << endl;
       }
     } else {
+      // end of a doc
       // cerr << line << endl;
       vector<string> items;
       boost::split(items, line, boost::is_any_of(" "));
       doc.filename = items[1];
-      doc.didx = std::stoi(items[2]); // get doc index
+      try{
+	doc.didx = std::stoi(items[2]); // get doc index
+      } catch(std::exception& e) {
+	cerr << "Cannot convert " << items[2] << " to an int" << endl;
+	exit(-1);
+      }
       if (doc.sents.size() > 0){
 	corpus.push_back(doc);
 	doc = Doc(); // get a new instance
